@@ -26,6 +26,9 @@
 (require 'cl-lib)
 (require 'helm)
 
+(declare-function helm-html-decode-entities-string "ext:helm-utils.el")
+(declare-function helm-comp-read "ext:helm-mode.el")
+
 (defgroup helm-skitour nil
   "Skitour helm interface."
   :group 'helm)
@@ -44,8 +47,7 @@ to configure this variable with completion."
 ;;;###autoload
 (defun helm-skitour-setup-default-massifs ()
   (interactive)
-  (let ((data (helm-skitour-get-massifs))
-         default-massifs)
+  (let ((data (helm-skitour-get-massifs)))
     (customize-save-variable
      'helm-skitour-default-massifs-ids
      (helm-comp-read "Select favorite Massifs (mark candidates) : "
