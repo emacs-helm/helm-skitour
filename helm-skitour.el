@@ -95,7 +95,8 @@ to configure this variable with completion."
 (defun helm-skitour-get-candidates (data)
   (cl-loop for o across data
            for id = (plist-get o :id)
-           for titre = (or (plist-get o :titre) (plist-get o :nom))
+           for titre = (helm-html-decode-entities-string
+                        (or (plist-get o :titre) (plist-get o :nom)))
            for date =  (plist-get o :date)
            for orientation = (plist-get o :orientation)
            for deniv = (plist-get o :denivele)
