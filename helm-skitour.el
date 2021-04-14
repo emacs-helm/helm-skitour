@@ -44,6 +44,10 @@ Use `helm-skitour-setup-default-massifs' command
 to configure this variable with completion."
   :type '(repeat integer))
 
+(defcustom helm-skitour-openmap-fmt-url "https://www.openstreetmap.org/#map=14/%s/%s&layers=C"
+  "The url to browse map at latitude/longitude."
+  :type 'string)
+
 ;;;###autoload
 (defun helm-skitour-setup-default-massifs (&optional append)
   (interactive "R")
@@ -91,8 +95,17 @@ to configure this variable with completion."
          (scache (assoc-default name cache)))
     (helm-build-sync-source name
       :candidates (lambda () (helm-skitour-get-candidates scache))
-      :action (lambda (candidate)
-                (browse-url (format fmt-url candidate)))
+      :action `(("Goto Skitour" . (lambda (candidate)
+                                    (browse-url (format ,fmt-url candidate))))
+                ("Goto map" . (lambda (_candidate)
+                                (let* ((latlon (get-text-property
+                                                0 'latlon
+                                                (helm-get-selection nil 'withprop)))
+                                       (lat (aref latlon 0))
+                                       (lon (aref latlon 1)))
+                                  (when latlon
+                                    (browse-url
+                                     (format helm-skitour-openmap-fmt-url lat lon)))))))
       :multiline t)))
 
 (defun helm-skitour-build-sources (cache type)
@@ -115,18 +128,21 @@ to configure this variable with completion."
            for depart = (plist-get o :depart)
            for pdepart = (and depart (plist-get depart :nom))
            for adepart = (and depart (plist-get depart :altitude))
-           for auteur = (plist-get (plist-get o :auteur) :pseudo)
-           collect (cons (format "%s%s\n Deniv: %s, Orient: %s, Diff: %s%s%s."
-                                 (if date
-                                     (propertize (format-time-string
-                                                  "%d/%m/%y "
-                                                  (time-convert (string-to-number date)))
-                                                 'face 'font-lock-keyword-face)
-                                   "")
-                                 (propertize titre 'face 'font-lock-type-face)
-                                 deniv orientation difficulte
-                                 (if auteur (format ", Aut: %s" auteur) "")
-                                 (if depart (format ", Dep: %s, Alt: %s" pdepart adepart) ""))
+           for latlon = (and depart (plist-get depart :latlon))
+           for auteur = (plist-get (plist-get 0 :auteur) :pseudo)
+           collect (cons (propertize
+                          (format "%s%s\n Deniv: %s, Orient: %s, Diff: %s%s%s."
+                                  (if date
+                                      (propertize (format-time-string
+                                                   "%d/%m/%y "
+                                                   (time-convert (string-to-number date)))
+                                                  'face 'font-lock-keyword-face)
+                                    "")
+                                  (propertize titre 'face 'font-lock-type-face)
+                                  deniv orientation difficulte
+                                  (if auteur (format ", Aut: %s" auteur) "")
+                                  (if depart (format ", Dep: %s, Alt: %s" pdepart adepart) ""))
+                          'latlon latlon)
                          id)))
 
 ;;;###autoload
