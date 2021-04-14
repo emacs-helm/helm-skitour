@@ -104,8 +104,11 @@ to configure this variable with completion."
            for deniv = (plist-get o :denivele)
            for difficulte = (plist-get o :dif_ski)
            ;; for gpx = (plist-get o :gpx)
+           for depart = (plist-get o :depart)
+           for pdepart = (and depart (plist-get depart :nom))
+           for adepart = (and depart (plist-get depart :altitude))
            for auteur = (plist-get (plist-get o :auteur) :pseudo)
-           collect (cons (format "%s%s\n Deniv: %s, Orient: %s, Diff: %s%s."
+           collect (cons (format "%s%s\n Deniv: %s, Orient: %s, Diff: %s%s%s."
                                  (if date
                                      (propertize (format-time-string
                                                   "%d/%m/%y "
@@ -114,7 +117,8 @@ to configure this variable with completion."
                                    "")
                                  (propertize titre 'face 'font-lock-type-face)
                                  deniv orientation difficulte
-                                 (if auteur (format ", Aut: %s" auteur) ""))
+                                 (if auteur (format ", Aut: %s" auteur) "")
+                                 (if depart (format ", Dep: %s, Alt: %s" pdepart adepart) ""))
                          id)))
 
 ;;;###autoload
