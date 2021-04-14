@@ -50,17 +50,18 @@ to configure this variable with completion."
   (let ((data (helm-skitour-get-massifs)))
     (customize-save-variable
      'helm-skitour-default-massifs-ids
-     (append
-      (helm-comp-read "Select favorite Massifs (mark candidates) : "
-                      (cl-loop for (id . mass) in data
-                               collect (cons mass (string-to-number id)))
-                      :fc-transformer (lambda (candidates _source)
-                                        (cl-loop for (d . r) in candidates
-                                                 if (member r helm-skitour-default-massifs-ids)
-                                                 collect (cons (propertize d 'face 'font-lock-keyword-face) r)
-                                                 else collect (cons d r)))
-                      :marked-candidates t)
-      (and append helm-skitour-default-massifs-ids)))))
+     (helm-fast-remove-dups
+      (append
+       (helm-comp-read "Select favorite Massifs (mark candidates) : "
+                       (cl-loop for (id . mass) in data
+                                collect (cons mass (string-to-number id)))
+                       :fc-transformer (lambda (candidates _source)
+                                         (cl-loop for (d . r) in candidates
+                                                  if (member r helm-skitour-default-massifs-ids)
+                                                  collect (cons (propertize d 'face 'font-lock-keyword-face) r)
+                                                  else collect (cons d r)))
+                       :marked-candidates t)
+       (and append helm-skitour-default-massifs-ids))))))
     
 ;; Internals
 (defvar helm-skitour-massifs nil)
