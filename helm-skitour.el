@@ -101,8 +101,8 @@ to configure this variable with completion."
                                 (let* ((latlon (get-text-property
                                                 0 'latlon
                                                 (helm-get-selection nil 'withprop)))
-                                       (lat (aref latlon 0))
-                                       (lon (aref latlon 1)))
+                                       (lat (and latlon (aref latlon 0)))
+                                       (lon (and latlon (aref latlon 1))))
                                   (when latlon
                                     (browse-url
                                      (format helm-skitour-openmap-fmt-url lat lon)))))))
