@@ -44,7 +44,7 @@ Use `helm-skitour-setup-default-massifs' command
 to configure this variable with completion."
   :type '(repeat integer))
 
-(defcustom helm-skitour-openmap-fmt-url "https://www.openstreetmap.org/#map=14/%s/%s&layers=C"
+(defcustom helm-skitour-openmap-fmt-url "https://www.openstreetmap.org/#map=14/%s/%s&layers=Y"
   "The url to browse map at latitude/longitude."
   :type 'string)
 
