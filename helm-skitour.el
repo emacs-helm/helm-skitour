@@ -20,6 +20,7 @@
 ;;; Commentary:
 
 ;; Helm interface to https://skitour.fr/
+;; Use the skitour API https://skitour.fr/api/
 
 ;;; Code:
 
