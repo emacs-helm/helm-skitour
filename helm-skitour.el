@@ -75,11 +75,13 @@ to configure this variable with completion."
 
 (defun helm-skitour-get-data (url)
   (with-temp-buffer
-    (call-process "curl" nil t nil
-                  "-s" "-X" "GET" "-H"
-                  (format "cle: %s" helm-skitour-api-key)
-                  url)
-    (json-parse-string (buffer-string) :object-type 'plist)))
+    (let ((status (call-process "curl" nil t nil
+                                "-s" "-X" "GET" "-H"
+                                (format "cle: %s" helm-skitour-api-key)
+                                url)))
+      (if (= status 0)
+          (json-parse-string (buffer-string) :object-type 'plist)
+        (error "Process exited with status %s" status)))))
 
 (defun helm-skitour-get-massifs ()
   (let ((data (helm-skitour-get-data "https://skitour.fr/api/massifs")))
