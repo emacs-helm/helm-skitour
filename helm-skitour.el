@@ -104,7 +104,7 @@ to configure this variable with completion."
     (helm-build-sync-source name
       :candidates (lambda () (helm-skitour-get-candidates scache))
       :action `(("Goto Skitour" . (lambda (candidate)
-                                    (browse-url (format ,fmt-url candidate))))
+                                    (helm-browse-url (format ,fmt-url candidate))))
                 ("Goto map" . (lambda (_candidate)
                                 (let* ((latlon (get-text-property
                                                 0 'latlon
@@ -112,7 +112,7 @@ to configure this variable with completion."
                                        (lat (and latlon (aref latlon 0)))
                                        (lon (and latlon (aref latlon 1))))
                                   (when latlon
-                                    (browse-url
+                                    (helm-browse-url
                                      (format helm-skitour-openmap-fmt-url lat lon)))))))
       :multiline t)))
 
