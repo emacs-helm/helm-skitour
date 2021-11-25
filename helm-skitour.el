@@ -51,7 +51,7 @@ to configure this variable with completion."
 
 ;;;###autoload
 (defun helm-skitour-setup-default-massifs (&optional append)
-  (interactive "R")
+  (interactive "P")
   (let ((data (helm-skitour-get-massifs)))
     (customize-save-variable
      'helm-skitour-default-massifs-ids
