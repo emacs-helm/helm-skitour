@@ -80,6 +80,7 @@ to configure this variable with completion."
                                 (format "cle: %s" helm-skitour-api-key)
                                 url)))
       (if (= status 0)
+          ;; Available only with emacs compiled --with-json. 
           (json-parse-string (buffer-string) :object-type 'plist)
         (error "Process exited with status %s" status)))))
 
