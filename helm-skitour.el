@@ -49,6 +49,10 @@ to configure this variable with completion."
   "The url to browse map at latitude/longitude."
   :type 'string)
 
+(defcustom helm-skitour-saison-end 7
+  "Month when ski saison finish."
+  :type 'integer)
+
 ;;;###autoload
 (defun helm-skitour-setup-default-massifs (&optional append)
   (interactive "P")
@@ -149,6 +153,13 @@ to configure this variable with completion."
                           'latlon latlon)
                          id)))
 
+(defun helm-skitour-saison ()
+  (let ((year (format-time-string "%Y"))
+        (month (format-time-string "%m")))
+    (if (> (string-to-number month) helm-skitour-saison-end)
+        (number-to-string (1+ (string-to-number year)))
+      year)))
+
 ;;;###autoload
 (defun helm-skitour-sorties (&optional arg)
   (interactive "P")
@@ -159,10 +170,11 @@ to configure this variable with completion."
           (helm-skitour-get-massifs)))
   (when (or arg (null helm-skitour-sorties-cache))
     (setq helm-skitour-sorties-cache
-          (cl-loop for id in helm-skitour-default-massifs-ids
+          (cl-loop with saison = (helm-skitour-saison)
+                   for id in helm-skitour-default-massifs-ids
                    collect `(,(assoc-default (number-to-string id) helm-skitour-massifs)
                              . ,(helm-skitour-get-data (format "https://skitour.fr/api/sorties?a=%s&m=%s"
-                                                               (format-time-string "%Y") id))))))
+                                                               saison id))))))
   (let ((sources (helm-skitour-build-sources helm-skitour-sorties-cache 'sorties)))
     (helm :sources sources
           :buffer "*helm skitour sorties*")))
