@@ -85,7 +85,11 @@ to configure this variable with completion."
                                 url)))
       (if (= status 0)
           ;; Available only with emacs compiled --with-json. 
-          (json-parse-string (buffer-string) :object-type 'plist)
+          (condition-case-unless-debug _err
+              (json-parse-string (buffer-string) :object-type 'plist)
+            (json-parse-error
+             (message "Unable to parse json data from `%s'" url)
+             nil))
         (error "Process exited with status %s" status)))))
 
 (defun helm-skitour-get-massifs ()
