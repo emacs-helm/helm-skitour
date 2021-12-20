@@ -85,10 +85,12 @@ to configure this variable with completion."
                                 url)))
       (if (= status 0)
           ;; Available only with emacs compiled --with-json. 
-          (condition-case-unless-debug _err
-              (json-parse-string (buffer-string) :object-type 'plist)
+          (condition-case-unless-debug err
+              (json-parse-string
+               (buffer-substring-no-properties (point-min) (point-max))
+               :object-type 'plist)
             (json-parse-error
-             (message "Unable to parse json data from `%s'" url)
+             (message "Unable to parse json data from `%s': %s" url (cdr err))
              nil))
         (error "Process exited with status %s" status)))))
 
