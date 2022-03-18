@@ -29,6 +29,9 @@
 
 (declare-function helm-html-decode-entities-string "ext:helm-utils.el")
 (declare-function helm-comp-read "ext:helm-mode.el")
+(declare-function helm-browse-url "ext:helm-net.el")
+
+(defvar osm-server)
 
 (defgroup helm-skitour nil
   "Skitour helm interface."
@@ -118,9 +121,16 @@ to configure this variable with completion."
                                        (lat (and latlon (aref latlon 0)))
                                        (lon (and latlon (aref latlon 1))))
                                   (when latlon
-                                    (helm-browse-url
-                                     (format helm-skitour-openmap-fmt-url lat lon)))))))
+                                    (helm-skitour-gotomap lat lon))))))
       :multiline t)))
+
+(defun helm-skitour-gotomap (lat lon &optional zoom)
+  (require 'osm nil t)
+  (if (fboundp 'osm-goto)
+      (let ((osm-server 'opentopomap))
+        (osm-goto (string-to-number lat) (string-to-number lon) (or zoom 12)))
+    (helm-browse-url
+     (format helm-skitour-openmap-fmt-url lat lon))))
 
 (defun helm-skitour-build-sources (cache type)
   (let ((url (cl-case type
