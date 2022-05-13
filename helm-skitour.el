@@ -112,7 +112,7 @@ to configure this variable with completion."
          (scache (assoc-default name cache)))
     (helm-build-sync-source name
       :candidates (lambda () (helm-skitour-get-candidates scache))
-      :match 'diacritics
+      :diacritics t
       :action `(("Goto Skitour" . (lambda (candidate)
                                     (helm-browse-url (format ,fmt-url candidate))))
                 ("Goto map" . (lambda (_candidate)
