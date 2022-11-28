@@ -26,6 +26,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'shr)
 
 (declare-function helm-html-decode-entities-string "ext:helm-utils.el")
 (declare-function helm-comp-read "ext:helm-mode.el")
@@ -133,6 +134,7 @@ to configure this variable with completion."
     "Conditions d'accès/altitude du parking :"
     "Altitude de chaussage/déchaussage :"
     "Conditions pour le ski :"
+    "Itinéraire suivi :"
     "Activité avalancheuse :"))
 
 (defun helm-skitour-get-conditions (id)
@@ -141,18 +143,17 @@ to configure this variable with completion."
       (save-excursion
         (insert (plist-get data :conditions)
                 "\n\n"
-                (plist-get data :recit)))
+                (plist-get data :recit))
+        (shr-render-region (point-min) (point-max)))
       (while (re-search-forward
               (regexp-opt helm-skitour-sortie-conditions-tags) nil t)
+        (add-face-text-property
+         (match-beginning 0) (match-end 0) 'font-lock-keyword-face)
         (save-excursion
           (goto-char (match-beginning 0))
           (unless (bobp)
             (insert "\n"))))
-      (goto-char (point-min))
-      (while (re-search-forward "</?div>" nil t)
-        (replace-match "\n"))
-      (helm-skitour-PA-fill-buffer)
-      (helm-html-decode-entities-string (buffer-string)))))
+      (buffer-string))))
 
 (defun helm-skitour-PA-fill-buffer ()
   (goto-char (point-min))
@@ -163,6 +164,8 @@ to configure this variable with completion."
             (goto-char (point-at-bol))
             (forward-char fill-column)
             (forward-word)
+            (when (eq (char-after) ?\.)
+              (forward-char 1))
             (insert "\n"))
         (forward-line 1)))))
 
