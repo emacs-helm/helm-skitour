@@ -192,10 +192,37 @@ to configure this variable with completion."
     (display-buffer (current-buffer))))
 
 (defun helm-skitour-get-itin (id)
-  (let ((data (helm-skitour-get-topo-data id)))
+  (let* ((data (helm-skitour-get-topo-data id))
+         (variantes (plist-get data :variantes))
+         noms pos)
     (with-temp-buffer
       (insert (plist-get data :itineraire))
+      (when variantes
+        (setq pos (point))
+        (insert "Variantes:")
+        (cl-loop for lst across variantes
+                 for nom = (plist-get lst :nom)
+                 for desc = (plist-get lst :description)
+                 for deniv = (plist-get lst :denivele)
+                 for ski = (plist-get lst :ski)
+                 for orientation = (plist-get lst :orientation)
+                 do (push (format "\\(?:%s\\)" nom) noms)
+                 do (insert (concat nom ": "
+                                    (if (string= desc "")
+                                        (format "(deniv: %s, ski: %s, orientation: %s)"
+                                                deniv ski orientation)
+                                      desc)
+                                    "\n"))))
       (shr-render-region (point-min) (point-max))
+      (when variantes
+        (goto-char pos)
+        (while (re-search-forward
+                (mapconcat 'identity (cons "\\(?:Variantes\\)" (reverse noms)) "\\|") nil t)
+          (add-face-text-property
+           (match-beginning 0) (match-end 0) 'font-lock-keyword-face)
+          (save-excursion
+            (goto-char (match-beginning 0))
+            (insert "\n"))))
       (buffer-string))))
 
 (defun helm-skitour-gotomap-action (id)
