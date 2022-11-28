@@ -114,8 +114,9 @@ to configure this variable with completion."
     (helm-build-sync-source name
       :candidates (lambda () (helm-skitour-get-candidates scache))
       :diacritics t
-      :persistent-action (and (eq type 'sorties)
-                              #'helm-skitour-sorties-persistent-action)
+      :persistent-action (cl-case type
+                           (sorties #'helm-skitour-sorties-persistent-action)
+                           (topos #'helm-skitour-topo-persistent-action))
       :action `(("Goto Skitour" . (lambda (candidate)
                                     (helm-browse-url (format ,fmt-url candidate))))
                 ("Goto map" . helm-skitour-gotomap-action))
@@ -127,6 +128,13 @@ to configure this variable with completion."
       (puthash id (helm-skitour-get-data
                    (format "https://skitour.fr/api/sortie/%s" id))
                helm-skitour-sortie-data-cache)))
+
+(defvar helm-skitour-topo-data-cache (make-hash-table :test 'equal))
+(defun helm-skitour-get-topo-data (id)
+  (or (gethash id helm-skitour-topo-data-cache)
+      (puthash id (helm-skitour-get-data
+                   (format "https://skitour.fr/api/topo/%s" id))
+               helm-skitour-topo-data-cache)))
 
 (defconst helm-skitour-sortie-conditions-tags
   '("Météo/températures :"
@@ -170,11 +178,25 @@ to configure this variable with completion."
         (forward-line 1)))))
 
 (defun helm-skitour-sorties-persistent-action (id)
-  (with-current-buffer (get-buffer-create "*helm-skitour conditions*")
+  (with-current-buffer (get-buffer-create "*skitour conditions*")
     (erase-buffer)
     (save-excursion
       (insert (helm-skitour-get-conditions id)))
     (display-buffer (current-buffer))))
+
+(defun helm-skitour-topo-persistent-action (id)
+  (with-current-buffer (get-buffer-create "*skitour topo*")
+    (erase-buffer)
+    (save-excursion
+      (insert (helm-skitour-get-itin id)))
+    (display-buffer (current-buffer))))
+
+(defun helm-skitour-get-itin (id)
+  (let ((data (helm-skitour-get-topo-data id)))
+    (with-temp-buffer
+      (insert (plist-get data :itineraire))
+      (shr-render-region (point-min) (point-max))
+      (buffer-string))))
 
 (defun helm-skitour-gotomap-action (id)
   (let* ((latlon (or (get-text-property
