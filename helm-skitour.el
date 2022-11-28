@@ -129,6 +129,7 @@ to configure this variable with completion."
 
 (defconst helm-skitour-sortie-conditions-tags
   '("Météo/températures :"
+    "Horaires :"
     "Conditions d'accès/altitude du parking :"
     "Altitude de chaussage/déchaussage :"
     "Conditions pour le ski :"
@@ -150,12 +151,26 @@ to configure this variable with completion."
       (goto-char (point-min))
       (while (re-search-forward "</?div>" nil t)
         (replace-match "\n"))
+      (helm-skitour-PA-fill-buffer)
       (helm-html-decode-entities-string (buffer-string)))))
+
+(defun helm-skitour-PA-fill-buffer ()
+  (goto-char (point-min))
+  (save-excursion
+    (while (not (eobp))
+      (if (> (- (point-at-eol) (point-at-bol)) fill-column)
+          (progn
+            (goto-char (point-at-bol))
+            (forward-char fill-column)
+            (forward-word)
+            (insert "\n"))
+        (forward-line 1)))))
 
 (defun helm-skitour-sorties-persistent-action (id)
   (with-current-buffer (get-buffer-create "*helm-skitour conditions*")
     (erase-buffer)
-    (insert (helm-skitour-get-conditions id))
+    (save-excursion
+      (insert (helm-skitour-get-conditions id)))
     (display-buffer (current-buffer))))
 
 (defun helm-skitour-gotomap-action (id)
