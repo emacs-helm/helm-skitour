@@ -57,6 +57,10 @@ to configure this variable with completion."
   "Month when ski saison finish."
   :type 'integer)
 
+(defcustom helm-skitour-render-region-fn 'w3m-region
+  "How to render html in PA."
+  :type 'function)
+
 ;;;###autoload
 (defun helm-skitour-setup-default-massifs (&optional append)
   (interactive "P")
@@ -145,6 +149,7 @@ to configure this variable with completion."
     "Itinéraire suivi :"
     "Activité avalancheuse :"))
 
+;; This is used by for sorties sources PA.
 (defun helm-skitour-get-conditions (id)
   (let ((data (helm-skitour-get-sortie-data id)))
     (with-temp-buffer
@@ -152,7 +157,8 @@ to configure this variable with completion."
         (insert (plist-get data :conditions)
                 "\n\n"
                 (plist-get data :recit))
-        (shr-render-region (point-min) (point-max)))
+        (cl-letf (((symbol-function 'shr-fill-lines) #'ignore))
+          (funcall helm-skitour-render-region-fn (point-min) (point-max))))
       (while (re-search-forward
               (regexp-opt helm-skitour-sortie-conditions-tags) nil t)
         (add-face-text-property
@@ -161,6 +167,8 @@ to configure this variable with completion."
           (goto-char (match-beginning 0))
           (unless (bobp)
             (insert "\n"))))
+      (when (eq helm-skitour-render-region-fn 'shr-render-region)
+        (helm-skitour-PA-fill-buffer))
       (buffer-string))))
 
 (defun helm-skitour-PA-fill-buffer ()
@@ -206,14 +214,17 @@ to configure this variable with completion."
                  for deniv = (plist-get lst :denivele)
                  for ski = (plist-get lst :ski)
                  for orientation = (plist-get lst :orientation)
-                 do (push (format "\\(?:%s\\)" nom) noms)
+                 do (push (format "\\(?:%s[:]\\)"
+                                  (helm-html-decode-entities-string nom))
+                          noms)
                  do (insert (concat nom ": "
                                     (if (string= desc "")
                                         (format "(deniv: %s, ski: %s, orientation: %s)"
                                                 deniv ski orientation)
                                       desc)
                                     "\n"))))
-      (shr-render-region (point-min) (point-max))
+      (cl-letf (((symbol-function 'shr-fill-lines) #'ignore))
+        (funcall helm-skitour-render-region-fn (point-min) (point-max)))
       (when variantes
         (goto-char pos)
         (while (re-search-forward
@@ -222,7 +233,9 @@ to configure this variable with completion."
            (match-beginning 0) (match-end 0) 'font-lock-keyword-face)
           (save-excursion
             (goto-char (match-beginning 0))
-            (insert "\n"))))
+            (insert "\n\n"))))
+      (when (eq helm-skitour-render-region-fn 'shr-render-region)
+        (helm-skitour-PA-fill-buffer))
       (buffer-string))))
 
 (defun helm-skitour-gotomap-action (id)
