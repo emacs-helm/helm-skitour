@@ -115,15 +115,29 @@ to configure this variable with completion."
       :diacritics t
       :action `(("Goto Skitour" . (lambda (candidate)
                                     (helm-browse-url (format ,fmt-url candidate))))
-                ("Goto map" . (lambda (_candidate)
-                                (let* ((latlon (get-text-property
-                                                0 'latlon
-                                                (helm-get-selection nil 'withprop)))
-                                       (lat (and latlon (aref latlon 0)))
-                                       (lon (and latlon (aref latlon 1))))
-                                  (when latlon
-                                    (helm-skitour-gotomap lat lon))))))
+                ("Goto map" . helm-skitour-gotomap-action))
       :multiline t)))
+
+(defvar helm-skitour-sortie-data-cache (make-hash-table :test 'equal))
+(defun helm-skitour-get-sortie-data (id)
+  (or (gethash id helm-skitour-sortie-data-cache)
+      (puthash id (helm-skitour-get-data
+                   (format "https://skitour.fr/api/sortie/%s" id))
+               helm-skitour-sortie-data-cache)))
+
+(defun helm-skitour-gotomap-action (id)
+  (let* ((latlon (or (get-text-property
+                      0 'latlon
+                      (helm-get-selection nil 'withprop))
+                     (plist-get
+                      (plist-get
+                       (helm-skitour-get-sortie-data id)
+                       :depart)
+                      :latlon)))
+         (lat (and latlon (aref latlon 0)))
+         (lon (and latlon (aref latlon 1))))
+    (when latlon
+      (helm-skitour-gotomap lat lon))))
 
 (defun helm-skitour-gotomap (lat lon &optional zoom)
   (require 'osm nil t)
