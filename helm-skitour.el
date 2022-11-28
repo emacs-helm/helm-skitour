@@ -107,12 +107,14 @@ to configure this variable with completion."
                                      ("-" "")
                                      (grp (format " (%s)" grp))))))))
 
-(defun helm-skitour-build-source (id cache fmt-url)
+(defun helm-skitour-build-source (id cache fmt-url &optional type)
   (let* ((name (assoc-default (number-to-string id) helm-skitour-massifs))
          (scache (assoc-default name cache)))
     (helm-build-sync-source name
       :candidates (lambda () (helm-skitour-get-candidates scache))
       :diacritics t
+      :persistent-action (and (eq type 'sorties)
+                              #'helm-skitour-sorties-persistent-action)
       :action `(("Goto Skitour" . (lambda (candidate)
                                     (helm-browse-url (format ,fmt-url candidate))))
                 ("Goto map" . helm-skitour-gotomap-action))
@@ -124,6 +126,37 @@ to configure this variable with completion."
       (puthash id (helm-skitour-get-data
                    (format "https://skitour.fr/api/sortie/%s" id))
                helm-skitour-sortie-data-cache)))
+
+(defconst helm-skitour-sortie-conditions-tags
+  '("Météo/températures :"
+    "Conditions d'accès/altitude du parking :"
+    "Altitude de chaussage/déchaussage :"
+    "Conditions pour le ski :"
+    "Activité avalancheuse :"))
+
+(defun helm-skitour-get-conditions (id)
+  (let ((data (helm-skitour-get-sortie-data id)))
+    (with-temp-buffer
+      (save-excursion
+        (insert (plist-get data :conditions)
+                "\n\n"
+                (plist-get data :recit)))
+      (while (re-search-forward
+              (regexp-opt helm-skitour-sortie-conditions-tags) nil t)
+        (save-excursion
+          (goto-char (match-beginning 0))
+          (unless (bobp)
+            (insert "\n"))))
+      (goto-char (point-min))
+      (while (re-search-forward "</?div>" nil t)
+        (replace-match "\n"))
+      (helm-html-decode-entities-string (buffer-string)))))
+
+(defun helm-skitour-sorties-persistent-action (id)
+  (with-current-buffer (get-buffer-create "*helm-skitour conditions*")
+    (erase-buffer)
+    (insert (helm-skitour-get-conditions id))
+    (display-buffer (current-buffer))))
 
 (defun helm-skitour-gotomap-action (id)
   (let* ((latlon (or (get-text-property
@@ -152,7 +185,7 @@ to configure this variable with completion."
                (sorties "https://skitour.fr/sorties/%s")
                (topos "https://skitour.fr/topos/%s"))))
     (cl-loop for id in helm-skitour-default-massifs-ids
-             collect (helm-skitour-build-source id cache url))))
+             collect (helm-skitour-build-source id cache url type))))
 
 (defun helm-skitour-get-candidates (data)
   (cl-loop for o across data
