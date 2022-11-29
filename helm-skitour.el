@@ -169,6 +169,8 @@ to configure this variable with completion."
             (insert "\n"))))
       (when (eq helm-skitour-render-region-fn 'shr-render-region)
         (helm-skitour-PA-fill-buffer))
+      (while (re-search-forward "\\([[]url=\\(?99:http://.*\\)[]]\\)\\(.*\\)\\([[]/url[]]\\)" nil t)
+        (replace-match (propertize (match-string 99) 'face 'underline)))
       (buffer-string))))
 
 (defun helm-skitour-PA-fill-buffer ()
@@ -234,6 +236,9 @@ to configure this variable with completion."
           (save-excursion
             (goto-char (match-beginning 0))
             (insert "\n\n"))))
+      (goto-char (point-min))
+      (while (re-search-forward "\\([[]url=\\(?99:http://.*\\)[]]\\)\\(.*\\)\\([[]/url[]]\\)" nil t)
+        (replace-match (propertize (match-string 99) 'face 'underline)))
       (when (eq helm-skitour-render-region-fn 'shr-render-region)
         (helm-skitour-PA-fill-buffer))
       (buffer-string))))
