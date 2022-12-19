@@ -141,13 +141,16 @@ to configure this variable with completion."
                helm-skitour-topo-data-cache)))
 
 (defconst helm-skitour-sortie-conditions-tags
-  '("Météo/températures :"
-    "Horaires :"
-    "Conditions d'accès/altitude du parking :"
-    "Altitude de chaussage/déchaussage :"
-    "Conditions pour le ski :"
-    "Itinéraire suivi :"
-    "Activité avalancheuse :"))
+  '("Météo/températures"
+    "Horaires"
+    "Conditions d'accès/altitude du parking"
+    "Altitude de chaussage/déchaussage"
+    "Conditions pour le ski"
+    "Itinéraire suivi"
+    "Activité avalancheuse"))
+
+(defun helm-skitour--format-tags (tag)
+  (replace-regexp-in-string " " "[ \n\t]" tag))
 
 ;; This is used by for sorties sources PA.
 (defun helm-skitour-get-conditions (id)
@@ -160,7 +163,7 @@ to configure this variable with completion."
         (cl-letf (((symbol-function 'shr-fill-lines) #'ignore))
           (funcall helm-skitour-render-region-fn (point-min) (point-max))))
       (while (re-search-forward
-              (regexp-opt helm-skitour-sortie-conditions-tags) nil t)
+              (mapconcat 'helm-skitour--format-tags helm-skitour-sortie-conditions-tags "\\|") nil t)
         (add-face-text-property
          (match-beginning 0) (match-end 0) 'font-lock-keyword-face)
         (save-excursion
