@@ -27,6 +27,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'shr)
+(require 'helm-net)
 
 (declare-function helm-html-decode-entities-string "ext:helm-utils.el")
 (declare-function helm-comp-read "ext:helm-mode.el")
