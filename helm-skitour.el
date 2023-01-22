@@ -148,19 +148,25 @@ to configure this variable with completion."
     "Altitude de chaussage/déchaussage"
     "Conditions pour le ski"
     "Itinéraire suivi"
-    "Activité avalancheuse"))
+    "Activité avalancheuse"
+    "Départ"
+    "Altitude"))
 
 (defun helm-skitour--format-tags (tag)
   (replace-regexp-in-string " " "[ \n\t]" tag))
 
 ;; This is used by for sorties sources PA.
 (defun helm-skitour-get-conditions (id)
-  (let ((data (helm-skitour-get-sortie-data id)))
+  (let* ((data (helm-skitour-get-sortie-data id))
+         (location (plist-get data :depart)))
     (with-temp-buffer
       (save-excursion
-        (insert (plist-get data :conditions)
-                "\n\n"
-                (plist-get data :recit))
+        (insert
+         (format "Départ: %s" (plist-get location :nom))
+         (format "Altitude: %s" (plist-get location :altitude))
+         (plist-get data :conditions)
+         "\n\n"
+         (plist-get data :recit))
         (cl-letf (((symbol-function 'shr-fill-lines) #'ignore))
           (funcall helm-skitour-render-region-fn (point-min) (point-max))))
       (while (re-search-forward
