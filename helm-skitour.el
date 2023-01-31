@@ -158,7 +158,8 @@ to configure this variable with completion."
 ;; This is used by for sorties sources PA.
 (defun helm-skitour-get-conditions (id)
   (let* ((data (helm-skitour-get-sortie-data id))
-         (location (plist-get data :depart)))
+         (location (plist-get data :depart))
+         case-fold-search)
     (with-temp-buffer
       (save-excursion
         (insert
