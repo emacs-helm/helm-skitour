@@ -188,9 +188,9 @@ to configure this variable with completion."
   (goto-char (point-min))
   (save-excursion
     (while (not (eobp))
-      (if (> (- (point-at-eol) (point-at-bol)) fill-column)
+      (if (> (- (pos-eol) (pos-bol)) fill-column)
           (progn
-            (goto-char (point-at-bol))
+            (goto-char (pos-bol))
             (forward-char fill-column)
             (forward-word)
             (when (eq (char-after) ?\.)
@@ -303,7 +303,7 @@ to configure this variable with completion."
                                   (if date
                                       (propertize (format-time-string
                                                    "%d/%m/%y "
-                                                   (time-convert (string-to-number date)))
+                                                   (time-convert (string-to-number date) 'integer))
                                                   'face 'font-lock-keyword-face)
                                     "")
                                   (propertize titre 'face 'font-lock-type-face)
