@@ -44,7 +44,7 @@
   "The API key from your Skitour account."
   :type 'string)
 
-(defcustom helm-skitour-default-massifs-ids '(6 7 8 14)
+(defcustom helm-skitour-default-massifs-ids '(7 6 5)
   "La liste des codes massif favoris.
 Use `helm-skitour-setup-default-massifs' command
 to configure this variable with completion."
@@ -93,14 +93,25 @@ to configure this variable with completion."
                                 (format "cle: %s" helm-skitour-api-key)
                                 url)))
       (if (= status 0)
-          ;; Available only with emacs compiled --with-json. 
-          (condition-case-unless-debug err
-              (json-parse-string
-               (buffer-substring-no-properties (point-min) (point-max))
-               :object-type 'plist)
-            (json-parse-error
-             (message "Unable to parse json data from `%s': %s" url (cdr err))
-             nil))
+          (progn
+            (save-excursion
+              ;; Some entries are wrongly quoted on web side e.g.
+              ;; "Cime du pied du Barry: \\"Arêtissime\\"", this is
+              ;; not supported. I already reported this but the same
+              ;; entry come back again regularly for some reasons,
+              ;; bored reporting this.  So try to fix such issues by
+              ;; removing such quotes like this: "Cime du pied du
+              ;; Barry: Arêtissime"
+              (goto-char (point-min))
+              (while (re-search-forward "\\s\\+[\"]" nil t) (replace-match "")))
+            ;; Available only with emacs compiled --with-json. 
+            (condition-case-unless-debug err
+                (json-parse-string
+                 (buffer-substring-no-properties (point-min) (point-max))
+                 :object-type 'plist)
+              (json-parse-error
+               (message "Unable to parse json data from `%s': %s" url (cdr err))
+               nil)))
         (error "Process exited with status %s" status)))))
 
 (defun helm-skitour-get-massifs ()
