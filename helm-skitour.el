@@ -58,7 +58,7 @@ to configure this variable with completion."
   "Month when ski saison finish."
   :type 'integer)
 
-(defcustom helm-skitour-render-region-fn 'w3m-region
+(defcustom helm-skitour-render-region-fn 'shr-render-region
   "How to render html in PA."
   :type 'function)
 
