@@ -93,25 +93,14 @@ to configure this variable with completion."
                                 (format "cle: %s" helm-skitour-api-key)
                                 url)))
       (if (= status 0)
-          (progn
-            (save-excursion
-              ;; Some entries are wrongly quoted on web side e.g.
-              ;; "Cime du pied du Barry: \\"Arêtissime\\"", this is
-              ;; not supported. I already reported this but the same
-              ;; entry come back again regularly for some reasons,
-              ;; bored reporting this.  So try to fix such issues by
-              ;; removing such quotes like this: "Cime du pied du
-              ;; Barry: Arêtissime"
-              (goto-char (point-min))
-              (while (re-search-forward "\\s\\+[\"]" nil t) (replace-match "")))
-            ;; Available only with emacs compiled --with-json. 
-            (condition-case-unless-debug err
-                (json-parse-string
-                 (buffer-substring-no-properties (point-min) (point-max))
-                 :object-type 'plist)
-              (json-parse-error
-               (message "Unable to parse json data from `%s': %s" url (cdr err))
-               nil)))
+          ;; Available only with emacs compiled --with-json. 
+          (condition-case-unless-debug err
+              (json-parse-string
+               (buffer-substring-no-properties (point-min) (point-max))
+               :object-type 'plist)
+            (json-parse-error
+             (message "Unable to parse json data from `%s': %s" url (cdr err))
+             nil))
         (error "Process exited with status %s" status)))))
 
 (defun helm-skitour-get-massifs ()
